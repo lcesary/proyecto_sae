@@ -141,14 +141,11 @@ docs/
 *.pyz
 *.manifest
 windows.py
-run_server.py
-server/__init__.py
 .vscode/
-
 .vscode/settings.json
 some_image.jpg
 .vscode
 venv/
 nohup.out
 ssl/
-settings.ini
+
