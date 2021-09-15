@@ -1,12 +1,10 @@
-from .models import *
+
 from tornado.gen import coroutine
-from ..operaciones.managers import *
 from .managers import *
 from ..common.controllers import CrudController, SuperController, ApiController
 import json
-from flask import Flask
-from flask import jsonify
-from flask import request
+from ..common.utils import try_except,try_except_index
+
 
 class UsuarioController(CrudController):
     manager = UsuarioManager
@@ -17,7 +15,6 @@ class UsuarioController(CrudController):
         '/usuario_insert': {'POST': 'insert'},
         '/usuario_update': {'PUT': 'edit', 'POST': 'update'},
         '/usuario_delete': {'POST': 'delete_user'},
-        '/usuario_activate': {'POST': 'activate_user'},
         '/usuario_profile': {'GET': 'usuario_profile'},
         '/usuario_update_profile': {'POST': 'user_update_profile'},
         '/usuario_update_password': {'POST': 'user_update_password'},
@@ -28,54 +25,43 @@ class UsuarioController(CrudController):
     def get_extra_data(self):
         aux = super().get_extra_data()
         aux['roles'] = RolManager(self.db).get_all()
+        aux['sucursales'] = SucursalManager(self.db).listar(aux['usuario'])
         return aux
 
-    def get_extra_data1(self):
-        aux = super().get_extra_data()
-        aux['persona'] = PersonaManager(self.db).get_all()
-        return aux
-
+    @try_except_index
     def index(self):
-        self.set_session()
         self.verif_privileges()
-        result = self.manager(self.db).list_all()
+        usuario = self.get_user()
+        result = self.manager(self.db).list_all(usuario)
         result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
         result.update(self.get_extra_data())
-        result.update(self.get_extra_data1())
         self.render(self.html_index, **result)
-        self.db.close()
 
+    @try_except
     def insert(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         diccionary['user_id'] = self.get_user_id()
-        diccionary['ip'] = self.request.remote_ip
         objeto = self.manager(self.db).entity(**diccionary)
         UsuarioManager(self.db).insert(objeto)
         self.respond(success=True, message='Insertado correctamente.')
-        self.db.close()
 
+    @try_except
     def update(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         diccionary['user_id'] = self.get_user_id()
-        diccionary['ip'] = self.request.remote_ip
         objeto = self.manager(self.db).entity(**diccionary)
         UsuarioManager(self.db).update(objeto)
         self.respond(success=True, message='Modificado correctamente.')
-        self.db.close()
 
+    @try_except
     def delete_user(self):
-        self.set_session()
         ins_manager = self.manager(self.db)
         diccionary = json.loads(self.get_argument("object"))
         id = diccionary['id']
-        enable = diccionary['enabled']
-        #id = json.loads(self.get_argument("id"))
-        resp = UsuarioManager(self.db).delete_user(id, enable, self.get_user_id(), self.request.remote_ip)
-
+        usuario = UsuarioManager(self.db).sacar_estado(id)
+        resp = UsuarioManager(self.db).delete_user(usuario, self.get_user_id())
         if resp:
-            if enable == True:
+            if usuario.enabled == True:
                 msg = 'Usuario activado correctamente.'
             else:
                 msg = 'Usuario eliminado correctamente.'
@@ -83,26 +69,26 @@ class UsuarioController(CrudController):
         else:
             msg = 'Rol asignado dado de baja, no es posible habilitar el usuario.'
             self.respond(success=False, message=msg)
-        self.db.close()
 
-    def activate_user(self):
-        self.set_session()
+    @try_except
+    def usuario_codigo_reset(self):
         id = json.loads(self.get_argument("id"))
-        UsuarioManager(self.db).activate_users(id, self.get_user_id(), self.request.remote_ip)
-        self.respond(success=True, message='Usuario activado correctamente.')
-        self.db.close()
+        self.manager(self.db).update_codigo(id)
+        self.respond(success=True, message='Modificado Correctamente!')
 
+    def fecha_actual(self):
+        return datetime.now(pytz.timezone('America/La_Paz'))
+
+    @try_except_index
     def usuario_profile(self):
         user = self.get_user()
-        self.set_session()
         self.verif_privileges()
         usuario = UsuarioManager(self.db)
         result = usuario.get_userById(self.get_user_id())
         self.render("usuarios/views/usuario/profile.html", user=user, **result)
-        self.db.close()
 
+    @try_except
     def user_update_password(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         user = self.manager(self.db).get_by_password(self.get_user_id(), diccionary['old_password'])
         if user:
@@ -114,10 +100,9 @@ class UsuarioController(CrudController):
                 self.respond(message="Datos incorrectos", success=False)
         else:
             self.respond(message="Datos incorrectos", success=False)
-        self.db.close()
 
+    @try_except_index
     def user_reset_password(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         user = self.manager(self.db).get_by_pass(self.get_user_id())
         if user:
@@ -129,27 +114,13 @@ class UsuarioController(CrudController):
                 self.respond(message="Datos incorrectos", success=False)
         else:
             self.respond(message="Datos incorrectos", success=False)
-        self.db.close()
 
+    @try_except
     def user_update_profile(self):
-        self.set_session()
-
         diccionary = json.loads(self.get_argument("object"))
-        diccionary['ip'] = self.request.remote_ip
         objeto = self.manager(self.db).entity(**diccionary)
-        user = self.manager(self.db).update_profile(objeto, diccionary['ip'])
+        user = self.manager(self.db).update_profile(objeto)
         self.respond(message="Datos Correctos", success=True)
-        self.db.close()
-
-    def usuario_codigo_reset(self):
-        self.set_session()
-        id = json.loads(self.get_argument("id"))
-        self.manager(self.db).update_codigo(id)
-        self.respond(success=True, message='Modificado Correctamente!')
-        self.db.close()
-
-    def fecha_actual(self):
-        return datetime.now(pytz.timezone('America/La_Paz'))
 
 
 class RolController(CrudController):
@@ -163,54 +134,60 @@ class RolController(CrudController):
         '/rol_delete': {'POST': 'delete_rol'}
     }
 
-    def index(self):
-        self.set_session()
-        self.verif_privileges()
-        result = self.manager(self.db).list_all()
-        result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
-        result.update(self.get_extra_data())
-        self.render(self.html_index, **result)
-        self.db.close()
-
     def get_extra_data(self):
         aux = super().get_extra_data()
         aux['modulos'] = ModuloManager(self.db).list_all()
         return aux
 
+    @try_except_index
+    def index(self):
+        self.verif_privileges()
+        result = self.manager(self.db).listar_todo()
+        result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
+        result.update(self.get_extra_data())
+        self.render(self.html_index, **result)
+
+
+    @try_except
+    def edit(self):
+        self.verif_privileges()
+        ins_manager = self.manager(self.db)
+        diccionary = json.loads(self.get_argument("object"))
+        indicted_object = ins_manager.obtain(diccionary['id'])
+        if len(ins_manager.errors) == 0:
+            self.respond(indicted_object.get_dict(), message='Operacion exitosa!')
+        else:
+            self.respond([item.__dict__ for item in ins_manager.errors], False, 'Ocurrió un error al insertar')
+
+    @try_except
     def insert(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         diccionary['user'] = self.get_user_id()
-        diccionary['ip'] = self.request.remote_ip
         objeto = self.manager(self.db).entity(**diccionary)
         RolManager(self.db).insert(objeto)
         self.respond(success=True, message='Insertado correctamente.')
-        self.db.close()
 
+    @try_except
     def update(self):
-        self.set_session()
         diccionary = json.loads(self.get_argument("object"))
         diccionary['user'] = self.get_user_id()
         diccionary['ip'] = self.request.remote_ip
         objeto = self.manager(self.db).entity(**diccionary)
         RolManager(self.db).update(objeto)
         self.respond(success=True, message='Modificado correctamente.')
-        self.db.close()
 
+    @try_except
     def delete_rol(self):
-        self.set_session()
         ins_manager = self.manager(self.db)
         diccionary = json.loads(self.get_argument("object"))
         id = diccionary['id']
         enable = diccionary['enabled']
-
         RolManager(self.db).delete_rol(id, enable, self.get_user_id(), self.request.remote_ip)
         if enable == True:
             msg = 'Rol activado correctamente.'
         else:
             msg = 'Rol inhabilitado correctamente.'
         self.respond(success=True, message=msg)
-        self.db.close()
 
 
 class LoginController(SuperController):

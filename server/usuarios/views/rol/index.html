@@ -155,7 +155,7 @@
                     'descripcion': $('#descripcion').val(),
                     'modulos': get_cb_ids('.module')
                 })
-                ajax_call("{{privileges['rol_insert'].route}}", {_xsrf: getCookie("_xsrf"), object: objeto}, null, function () {window.location = main_route})
+                ajax_call("{{privileges['rol_insert'].ruta}}", {_xsrf: getCookie("_xsrf"), object: objeto}, null, function () {window.location = main_route})
                 $('#form').modal('hide')
             }else{
                 swal(
@@ -179,10 +179,11 @@
             obj = JSON.stringify({
                 'id': parseInt(JSON.parse($(this).attr('data-json')))
                 })
-                ajax_call_get("{{privileges['rol_update'].route}}",{
+                ajax_call_get("{{privileges['rol_update'].ruta}}",{
                     _xsrf: getCookie("_xsrf"),
                     object: obj
                 },function(response){
+                    debugger
                     console.log(response);
                     var self = response;
                     $('#id').val(self.id)
@@ -202,7 +203,6 @@
                     $('#form').modal('show')
                 })
         })
-
     }
 
     $('#update').click(function () {
@@ -216,7 +216,7 @@
             'modulos': get_cb_ids('.module')
         })
         console.log(objeto)
-        ajax_call("{{privileges['rol_update'].route}}", {_xsrf: getCookie("_xsrf"), object: objeto}, null, function () {window.location = main_route})
+        ajax_call("{{privileges['rol_update'].ruta}}", {_xsrf: getCookie("_xsrf"), object: objeto}, null, function () {window.location = main_route})
         $('#form').modal('hide')
     })
     {% end %}

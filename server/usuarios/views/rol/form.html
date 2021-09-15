@@ -42,13 +42,13 @@
                                 {% end %}
 
                                 <li>
-                                    <i class="material-icons">{{module.icon}}</i>
-                                    <input id="{{module.name}}" type="checkbox" class="module chk-col-deep-purple" data-id="{{module.id}}">
-                                    <label for="{{module.name}}" data-id="{{module.id}}" >{{module.title}}</label>
-                                {% if len(module.children) <= 0 %}
+                                    <i class="material-icons">{{module.icono}}</i>
+                                    <input id="{{module.nombre}}" type="checkbox" class="module chk-col-deep-purple" data-id="{{module.id}}">
+                                    <label for="{{module.nombre}}" data-id="{{module.id}}" >{{module.titulo}}</label>
+                                {% if len(module.modulo) <= 0 %}
                                     </li>
                                 {% else %}
-                                    {% set mods.extend(module.children[::-1]) %}
+                                    {% set mods.extend(module.modulo[::-1]) %}
                                     {% set parents_ids.append(module.id) %}
                                         <ul class="tree-menu">
                                 {% end %}

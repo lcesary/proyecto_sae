@@ -5,6 +5,13 @@ class SuperManager:
         self.errors = list()
         self.db = db
 
+    def funcion_aux(self, objeto):
+        lista = list()
+        for o in objeto:
+            o = o.get_dict()
+            lista.append(o)
+        return lista
+
     def get_page(self, page_nr=0, max_entries=0, like_search=None, order_by=None, ascendant=True, query=None):
         """Lista los objetos de la base de datos de la entitad asignada en la clase hija.
 

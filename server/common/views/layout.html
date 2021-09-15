@@ -88,7 +88,7 @@
                         <a href=""><i class="material-icons"> </i></a>
                         <a href=""><i class="material-icons"> </i></a>
                         <a href=""><i class="material-icons"> </i></a>
-                        <a href="/usuario_profile"><i class="material-icons" title="Perfil de usuario">account_circle</i></a>
+                       <!-------- <a href="/usuario_profile"><i class="material-icons" title="Perfil de usuario">account_circle</i></a>------------->
                         <a href=""><i class="material-icons"> </i></a>
                         <a href=""><i class="material-icons"> </i></a>
                         <a href=""><i class="material-icons"> </i></a>
@@ -118,20 +118,18 @@
                             {% set del(parents_ids[-1]) %}
                             {% end %}
 
-                            {% if module.route %}
-                                {% set url = module.route %}
+                            {% if module.ruta %}
+                                {% set url = module.ruta %}
                             {% else %}
                                 {% set url = '#' %}
                             {% end %}
 
-                            {% if len(module.children) <= 0 or url != '#' %}
-                                {% if module.name != 'perfil' %}
-                                <li><a href="{{url}}" class=""><i class="material-icons" title="{{module.title}}">{{module.icon}}</i><span>{{module.title}}</span></a></li>
-                                {% end %}
+                            {% if len(module.modulo) <= 0 or url != '#' %}
+                                <li><a href="{{url}}" class=""><i class="material-icons" title="{{module.titulo}}">{{module.icono}}</i><span>{{module.titulo}}</span></a></li>
                             {% else %}
-                                {% set mods.extend(module.children[::-1]) %}
+                                {% set mods.extend(module.modulo[::-1]) %}
                                 {% set parents_ids.append(module.id) %}
-                                <li><a href="{{url}}" class="menu-toggle"><i class="material-icons" title="{{module.title}}">{{module.icon}}</i><span>{{module.title}}</span></a>
+                                <li><a href="{{url}}" class="menu-toggle"><i class="material-icons" title="{{module.titulo}}">{{module.icono}}</i><span>{{module.titulo}}</span></a>
                                     <ul class="ml-menu">
                             {% end %}
                         {% end %}

@@ -68,9 +68,15 @@ class Serializable:
             col = colum.name.split('_')
             attr = getattr(self, col[len(col)-1])
             if not isinstance(attr, (str, int, float, bool)):
-                result[col[len(col)-1]] = str(attr)
+                if attr != None:
+                    result[col[len(col)-1]] = str(attr)
+                else:
+                    result[col[len(col) - 1]] = ""
             else:
-                result[col[len(col)-1]] = attr
+                if attr != None:
+                    result[col[len(col)-1]] = attr
+                else:
+                    result[col[len(col) - 1]] = ""
 
         for key in way:
             attr = getattr(self, key)

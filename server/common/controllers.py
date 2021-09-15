@@ -188,6 +188,8 @@ class CrudController(MethodDispatcher):
         self.respond(updated_object.get_dict(), message=message)
         self.db.close()
 
+
+
     def verif_privileges(self):
         if not UsuarioManager(self.db).\
                 has_access(self.get_user_id(),

@@ -19,13 +19,17 @@ class UsuarioManager(SuperManager):
     def __init__(self, db):
         super().__init__(Usuario, db)
 
+    def sacar_estado(self,id):
+        usuario= self.db.query(Usuario).filter(Usuario.id == id ).first()
+        return usuario
+
     def listar_usuario(self,usuario):
-        usuario=self.db.query(Usuario).filter(Usuario.username==usuario).first()
+        usuario=self.db.query(Usuario).filter(Usuario.usuario==usuario).first()
         return usuario
 
     def name_role(self, rol):
         role = self.db.query(Rol).filter_by(id=rol).first()
-        nombre_rol = role.name
+        nombre_rol = role.nombre
         return nombre_rol
 
     def get_random_string(self):
@@ -37,10 +41,12 @@ class UsuarioManager(SuperManager):
     def insert(self, Usuario):
         if Usuario.fkrol > 0:
             Usuario.password = hashlib.sha512(Usuario.password.encode()).hexdigest()
-            codigo = self.get_random_string()
-            Usuario.codigo = codigo
+            if Usuario.nombre is not None:
+                Usuario.nombre = Usuario.nombre.upper()
+            if Usuario.apellidos is not None:
+                Usuario.apellidos = Usuario.apellidos.upper()
             fecha = BitacoraManager(self.db).fecha_actual()
-            b = Bitacora(fkusuario=Usuario.user_id, ip=Usuario.ip, accion="Se registró un usuario.", fecha=fecha)
+            b = Bitacora(fkusuario=Usuario.user_id,  accion="Se registró un usuario.", fecha=fecha)
             super().insert(b)
             u = super().insert(Usuario)
             return u
@@ -59,7 +65,7 @@ class UsuarioManager(SuperManager):
         if Usuarioupd.password != None:
             Usuarioupd.password = hashlib.sha512(Usuarioupd.password.encode()).hexdigest()
         fecha = BitacoraManager(self.db).fecha_actual()
-        b = Bitacora(fkusuario=Usuarioupd.id, ip=Usuarioupd.ip, accion="Se modificó un usuario.", fecha=fecha)
+        b = Bitacora(fkusuario=Usuarioupd.id, accion="Se modificó un usuario.", fecha=fecha)
         super().insert(b)
 
         user = self.db.query(Usuario).filter(Usuario.id == Usuarioupd.id).one()
@@ -74,25 +80,17 @@ class UsuarioManager(SuperManager):
             print(result)
             u.correo = emailnew
 
-    def delete_user(self, id, enable, Usuariocr, ip):
-        x = self.db.query(Usuario).filter(Usuario.id == id).one()
-
-        if enable == True:
-            r = self.db.query(Rol).filter(Rol.id == x.fkrol).one()
-            if r.enabled:
-                x.enabled = enable
-            else:
-                return False
-            message = "Se habilitó un usuario."
-        else:
-            x.enabled = enable
+    def delete_user(self, usuario, Usuariocr):
+        if usuario.enabled==True:
+            usuario.enabled=False
             message = "Se inhabilitó un usuario."
-
+        else:
+            usuario.enabled=True
+            message = "Se habilitó un usuario."
         fecha = BitacoraManager(self.db).fecha_actual()
-        b = Bitacora(fkusuario=Usuariocr, ip=ip, accion=message, fecha=fecha)
+        b = Bitacora(fkusuario=Usuariocr, accion=message, fecha=fecha)
         super().insert(b)
-        self.db.merge(x)
-        self.db.commit()
+        super().insert(usuario)
         return True
 
     def activate_Usuarios(self, id, Usuario, ip):
@@ -107,7 +105,7 @@ class UsuarioManager(SuperManager):
     def get_privileges(self, id, route):
         parent_module = self.db.query(Modulo).\
             join(Rol.modulos).join(Usuario).\
-            filter(Modulo.route == route).\
+            filter(Modulo.ruta == route).\
             filter(Usuario.id == id).\
             filter(Usuario.enabled).\
             first()
@@ -118,13 +116,16 @@ class UsuarioManager(SuperManager):
             filter(Modulo.fkmodulo == parent_module.id).\
             filter(Usuario.id == id).\
             filter(Usuario.enabled)
-        privileges = {parent_module.name: parent_module}
+        privileges = {parent_module.nombre: parent_module}
         for module in modules:
-            privileges[module.name] = module
+            privileges[module.nombre] = module
         return privileges
 
-    def list_all(self):
-        return dict(objects=self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Rol.nombre != "ADMINISTRADOR").distinct())
+    def list_all(self,usuario):
+        if usuario.fksucursal == 1:
+            return dict(objects=self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Rol.id != 1).distinct().all())
+        else:
+            return dict(objects=self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Usuario.fksucursal == usuario.fksucursal).filter(Rol.id != 1).distinct().all())
 
     def listar(self):
         return self.db.query(Usuario).filter(Usuario.enabled == True).filter(Rol.nombre != "ADMINISTRADOR").distinct()
@@ -134,7 +135,7 @@ class UsuarioManager(SuperManager):
         aux = self.db.query(Usuario.id).\
             join(Rol).join(Acceso).join(Modulo).\
             filter(Usuario.id == id).\
-            filter(Modulo.route == route).\
+            filter(Modulo.ruta == route).\
             filter(Usuario.enabled).\
             all()
         return len(aux) != 0
@@ -145,7 +146,7 @@ class UsuarioManager(SuperManager):
 
     def login_Usuario(self, username, password):
         password = hashlib.sha512(password.encode()).hexdigest()
-        return self.db.query(Usuario).filter(Usuario.username == username).filter(Usuario.password == password).filter(
+        return self.db.query(Usuario).filter(Usuario.usuario == username).filter(Usuario.password == password).filter(
             Usuario.enabled == 1)
 
     def get_userById(self, id):
@@ -162,24 +163,24 @@ class UsuarioManager(SuperManager):
     def get_by_pass(self, Usuario_id):
         return self.db.query(Usuario).filter(Usuario.id == Usuario_id).first()
 
-    def update_profile(self, Usuarioprf, ip):
+    def update_profile(self, Usuarioprf):
         usuario = self.db.query(Usuario).filter_by(id=Usuarioprf.id).first()
         usuario.nombre = Usuarioprf.nombre
         usuario.apellido = Usuarioprf.apellido
         usuario.correo = Usuarioprf.correo
         self.db.merge(usuario)
-        b = Bitacora(fkusuario=usuario.id, ip=ip, accion="Se actualizó perfil de usuario.", fecha=fecha_zona, tabla='cb_usuarios_usuario', identificador=usuario.id)
+        b = Bitacora(fkusuario=usuario.id, accion="Se actualizó perfil de usuario.", fecha=fecha_zona, tabla='cb_usuarios_usuario', identificador=usuario.id)
         super().insert(b)
         self.db.commit()
         return usuario
 
     def validar_usuario(self, username, password):
         password = hashlib.sha512(password.encode()).hexdigest()
-        return self.db.query(func.count(Usuario.id)).filter(Usuario.username == username).filter(
+        return self.db.query(func.count(Usuario.id)).filter(Usuario.usuario == username).filter(
             Usuario.enabled == True).filter(Usuario.password == password).scalar()
 
     def validar_usuario_sesion(self, codigo, usuario):
-        return self.db.query(func.count(Usuario.id)).filter(Usuario.codigo == codigo).filter(
+        return self.db.query(func.count(Usuario.id)).filter(
             Usuario.enabled == True).filter(Usuario.id == usuario).scalar()
 
     def activate_Usuario(self, usuario):
@@ -197,9 +198,30 @@ class UsuarioManager(SuperManager):
         self.db.close()
         return x
 
-    def listar_todo(self, id):
-        return self.db.query(Usuario).filter(Usuario.enabled == True).filter(Usuario.id == id)
+    def listar_todo(self):
+        return self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Rol.id != 1).distinct().all()
 
+    def funcion_aux(self, objeto):
+        lista = list()
+        for o in objeto:
+            rol = o.rol.nombre
+            o = o.get_dict()
+            o['rol']=rol
+            lista.append(o)
+        return lista
+class SucursalManager(SuperManager):
+    def __init__(self, db):
+        super().__init__(Sucursal, db)
+
+    def listar(self,usuario):
+        if usuario.fksucursal == 1:
+            a =self.db.query(Sucursal).filter(Sucursal.enabled == True)
+        else:
+            a = self.db.query(Sucursal).filter(Sucursal.enabled == True).filter(Sucursal.id == usuario.fksucursal )
+        return a
+
+    def list_all(self):
+        return dict(objects=self.db.query(Sucursal).distinct().all())
 
 class RolManager(SuperManager):
     def __init__(self, db):
@@ -211,7 +233,7 @@ class RolManager(SuperManager):
 
     def insert(self, rol):
         fecha = BitacoraManager(self.db).fecha_actual()
-        b = Bitacora(fkusuario=rol.user, ip=rol.ip, accion="Se registró un rol.", fecha=fecha)
+        b = Bitacora(fkusuario=rol.user, accion="Se registró un rol.", fecha=fecha)
         super().insert(b)
         a = super().insert(rol)
         return a
@@ -224,10 +246,13 @@ class RolManager(SuperManager):
         return a
 
     def list_all(self):
-        return dict(objects=self.db.query(Rol).distinct())
+        return dict(objects=self.db.query(Rol).distinct().all())
+
+    def listar_todo(self):
+        return dict(objects=self.db.query(Rol).filter(Rol.id != 1).distinct().all())
 
     def get_all(self):
-        return self.db.query(Rol).filter(Rol.enabled == True).filter(Rol.nombre != "ADMINISTRADOR")
+        return self.db.query(Rol).filter(Rol.enabled == True).filter(Rol.id != 1)
 
     def delete_rol(self, id, enable, Usuariocr, ip):
         x = self.db.query(Rol).filter(Rol.id == id).one()
@@ -279,8 +304,8 @@ class LoginManager:
             usuario = session.query(Usuario).\
                 options(joinedload('rol').
                         joinedload('modulos').
-                        joinedload('children')).\
-                filter(Usuario.username == username).\
+                        joinedload('modulo')).\
+                filter(Usuario.usuario == username).\
                 filter(Usuario.password == password).\
                 filter(Usuario.enabled).\
                 first()
@@ -313,8 +338,8 @@ class LoginManager:
             usuario = session.query(Usuario).\
                 options(joinedload('rol').
                         joinedload('modulos').
-                        joinedload('children')).\
-                filter(Usuario.username == username).\
+                        joinedload('modulo')).\
+                filter(Usuario.usuario == username).\
                 filter(Usuario.password == password).\
                 filter(Usuario.enabled == False).\
                 first()
@@ -330,7 +355,7 @@ class LoginManager:
             usuario = session.query(Usuario).\
                 options(joinedload('rol').
                         joinedload('modulos').
-                        joinedload('children')).\
+                        joinedload('modulo')).\
                 filter(Usuario.id == key).\
                 filter(Usuario.enabled).\
                 first()
@@ -347,11 +372,11 @@ class LoginManager:
         mods = {}
         while len(modules) > 0:
             module = modules.pop(0)
-            module.children = []
+            module.modulo = []
             mods[module.id] = module
             parent_module = mods.get(module.fkmodulo, None)
             if parent_module:
-                parent_module.children.append(module)
+                parent_module.modulo.append(module)
             else:
                 mods_parents.append(module)
         return mods_parents
