@@ -76,12 +76,14 @@ class HistorialController(CrudController):
         id = self.get_argument('id')
         #self.verif_privileges()
         result = self.manager(self.db).list_all()
-        result['usuario_perfil']=  UsuarioManager(self.db).sacar_estado(id)
+        result['usuario_perfil']=  UsuarioManager(self.db).usuario_id(id)
         #print(str(result['usuario_perfil'].fkrol))
+        
         rol = UsuarioManager(self.db).name_role(result['usuario_perfil'].fkrol)
         result['usuario_perfil'].fkrol=rol
         sucursal =SucursalManager(self.db).listar_id(int(result['usuario_perfil'].fksucursal))
         result['usuario_perfil'].fksucursal =sucursal
+        
         result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
         result['ubicaciones'] = BitacoraManager(self.db).obtenerUbicacionesUsuario(id)
         result.update(self.get_extra_data())
