@@ -74,7 +74,7 @@ class ApiAppController(ApiController):
       data = json.loads(self.request.body.decode('utf-8'))
       print("Funciona estos son los datos ||Bateria-> "+str(data['bateria'])+"% ||Longitud-> "+str(data['longitud'])+" ||Latitud-> "+str(data['latitud']))
       objeto = BitacoraManager(self.db).entity(**data)
-      BitacoraManager(self.db).guardarUbicacion(objeto)
+      TrackingManager(self.db).guardarUbicacion(objeto)
       self.respond(success=True, message="Datos insertados correctamente", response=data)
 
       self.db.close()

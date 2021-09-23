@@ -42,7 +42,14 @@ class BitacoraManager(SuperManager):
 
     def obtenerUbicaciones(self):
         return self.db.query(Tracking).all()
+
+class TrackingManager(SuperManager):
+    def __init__(self, db):
+        super().__init__(Tracking, db)
+
+
     def guardarUbicacion(self,DatosTrack):
+            DatosTrack.fkusuario = 1
             #super().insert(b)
             u = super().insert(DatosTrack)
             return u
