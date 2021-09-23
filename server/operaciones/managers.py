@@ -44,7 +44,7 @@ class BitacoraManager(SuperManager):
     def obtenerUbicaciones(self):
         listaUsuarios=[]
         listaDatos=[]
-        ubicaciones= self.db.query(Tracking).order_by(Tracking.id.asc()).all()
+        ubicaciones= self.db.query(Tracking).order_by(Tracking.id.desc()).all()
         for ubicacion in ubicaciones:
             if ubicacion.fkusuario not in listaUsuarios:
                 listaUsuarios.append(ubicacion.fkusuario)
