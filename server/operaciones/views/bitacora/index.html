@@ -113,7 +113,7 @@
                                   const features = [
                                   {% for ubicacion in ubicaciones %}
                                   {
-                                        position: new google.maps.LatLng({{ubicacion.latitud}},{{ubicacion.longitud}}),
+                                        position: new google.maps.LatLng({{ubicacion.longitud}},{{ubicacion.latitud}}),
                                         type: "library",
                                   },
                                   {% end %}
