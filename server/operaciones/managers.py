@@ -50,6 +50,9 @@ class BitacoraManager(SuperManager):
                 listaUsuarios.append(ubicacion.fkusuario)
                 listaDatos.append(ubicacion)
         return listaDatos
+    def obtenerUbicacionesUsuario(self,usuario_id):
+        ubicaciones= self.db.query(Tracking).filter(Tracking.fkusuario ==usuario_id).all()
+        return ubicaciones
 class TrackingManager(SuperManager):
     def __init__(self, db):
         super().__init__(Tracking, db)

@@ -68,11 +68,18 @@
 
                             <div id="googleMap" style="width:100%;height:900px;"></div>
                             <div class="vista-rapida">
-                                <h4>Vista rápida</h4>
-                                {% for ubicacionL in ubicaciones %}
-                               <a href="https://saetra.saebolivia.com/historial?id={{ubicacionL.fkusuario}}" target="_blank" rel="noopener noreferrer"> <p>{{ubicacionL.nombre_usuario}} {{ubicacionL.bateria}}% </p></a>
-                                {%end %}
+                                <h4>{{usuario.nombre}} {{usuario.apellidos}}</h4>
+                                <p>Cargo: {{usuario.fkrol}}</p>
+                                <p>Correo: {{usuario.correo}}</p>
+                                <p>Sucursal: {{usuario.fksucursal}}</p>
+
+
                             </div>
+                        </div>
+                        <div>
+                            {% for ubicacionL in ubicaciones %}
+                               <p>{{ubicacionL.nombre_usuario}} {{ubicacionL.bateria}}%  Cordeenadas: {{ubicacionL.longitud}} , {{ubicacionL.latitud}} </p>
+                                {%end %}
                         </div>
                     </div>
                 </div>

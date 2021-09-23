@@ -63,7 +63,26 @@ class BitacoraController(CrudController):
         
         req = requests.post("https://onesignal.com/api/v1/notifications", headers=header, data=json.dumps(payload))
         print(req.status_code, req.reason)
+class HistorialController(CrudController):
 
+    manager = TrackingManager
+    html_index = "operaciones/views/historial/index.html"
+    #html_table = "operaciones/views/bitacora/table.html"
+    routes = {
+        '/historial': {'GET': 'index', 'POST': 'table'},
+    }   
+    def index(self,**kwargs):
+        self.set_session()
+        id = self.get_argument('id')
+        #self.verif_privileges()
+        result = self.manager(self.db).list_all()
+        result['usuario']=  UsuarioManager(self.db).listar_usuario(id)
+        result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
+        result['ubicaciones'] = BitacoraManager(self.db).obtenerUbicacionesUsuario(id)
+        result.update(self.get_extra_data())
+        self.render(self.html_index, **result)
+        self.db.close()
+        
 class ApiAppController(ApiController):
     routes = {
         '/api/v3/test_sae': {'POST': 'test_sae'},
