@@ -35,5 +35,7 @@ class Tracking(Serializable, Base):
     latitud = Column('latitud', String(255), nullable=True)
     longitud = Column('longitud', String(255), nullable=True)
     bateria = Column('bateria', String(255), nullable=True)
+    nombre_usuario = Column('nombre_usuario', String(255), nullable=True)
     fkusuario = Column('fk_usuario', Integer, ForeignKey('USRMUSUARIO.id'), nullable=True)
+
     usuario = relationship('Usuario')

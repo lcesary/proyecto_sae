@@ -44,6 +44,7 @@ class BitacoraController(CrudController):
         self.set_session()
         self.verif_privileges()
         result = self.manager(self.db).list_all()
+        result['usuariosLista']=  UsuarioManager(self.db).listar()
         result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
         result['ubicaciones'] = BitacoraManager(self.db).obtenerUbicaciones()
         result.update(self.get_extra_data())

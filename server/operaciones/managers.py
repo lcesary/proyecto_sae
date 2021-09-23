@@ -14,6 +14,7 @@ from sqlalchemy import Date
 from datetime import datetime, date, time, timedelta
 from pyfcm import FCMNotification
 import pytz
+from sqlalchemy import distinct
 
 import uuid
 from server.common.managers import Error
@@ -41,8 +42,14 @@ class BitacoraManager(SuperManager):
         return fecha_zona.strftime('%Y/%d/%m')
 
     def obtenerUbicaciones(self):
-        return self.db.query(Tracking).all()
-
+        listaUsuarios=[]
+        listaDatos=[]
+        ubicaciones= self.db.query(Tracking).order_by(Tracking.id.asc()).all()
+        for ubicacion in ubicaciones:
+            if ubicacion.fkusuario not in listaUsuarios:
+                listaUsuarios.append(ubicacion.fkusuario)
+                listaDatos.append(ubicacion)
+        return listaDatos
 class TrackingManager(SuperManager):
     def __init__(self, db):
         super().__init__(Tracking, db)
@@ -50,6 +57,7 @@ class TrackingManager(SuperManager):
 
     def guardarUbicacion(self,DatosTrack):
             DatosTrack.fkusuario = 1
+            DatosTrack.nombreUsuario = "LUIS ENRIQUE"
            
             #super().insert(b)
             u = super().insert(DatosTrack)
