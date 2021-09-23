@@ -229,6 +229,10 @@ class SucursalManager(SuperManager):
         else:
             a = self.db.query(Sucursal).filter(Sucursal.enabled == True).filter(Sucursal.id == usuario.fksucursal )
         return a
+    def listar_id(self,id):
+        sucursal = self.db.query(Sucursal).filter(Sucursal.enabled == True).filter(Sucursal.id == id ).first()
+        return str(sucursal.nombre)
+
 
     def list_all(self):
         return dict(objects=self.db.query(Sucursal).distinct().all())
