@@ -37,7 +37,6 @@ class BitacoraController(CrudController):
     html_table = "operaciones/views/bitacora/table.html"
     routes = {
         '/bitacora': {'GET': 'index', 'POST': 'table'},
-        '/api/v3/test_sae': {'POST': 'test_sae'},
         '/api/mandar_notificacion': {'POST': 'mandar_notificacion'},
 
     }   
@@ -69,7 +68,7 @@ class ApiAppController(ApiController):
         '/api/v3/test_sae': {'POST': 'test_sae'},
 
     }   
-    
+
     def test_sae(self):
       self.set_session()
       data = json.loads(self.request.body.decode('utf-8'))
