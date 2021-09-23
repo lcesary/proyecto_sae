@@ -50,6 +50,7 @@ class TrackingManager(SuperManager):
 
     def guardarUbicacion(self,DatosTrack):
             DatosTrack.fkusuario = 1
+            print(DatosTrack.bateria)
             #super().insert(b)
             u = super().insert(DatosTrack)
             return u
