@@ -20,6 +20,7 @@ class UsuarioController(CrudController):
         '/usuario_update_password': {'POST': 'user_update_password'},
         '/usuario_reset_password': {'POST': 'usuario_reset_password'},
         '/usuario_codigo_reset': {'POST': 'usuario_codigo_reset'},
+        '/usuario_listar_sucursal': {'POST': 'usuario_listar_sucursal'},
     }
 
     def get_extra_data(self):
@@ -36,6 +37,18 @@ class UsuarioController(CrudController):
         result['privileges'] = UsuarioManager(self.db).get_privileges(self.get_user_id(), self.request.uri)
         result.update(self.get_extra_data())
         self.render(self.html_index, **result)
+
+    @try_except
+    def usuario_listar_sucursal(self):
+        data = json.loads(self.get_argument("object"))
+        usuario = self.get_user()
+        if data['sucursal_id'] != "1":
+            lista = UsuarioManager(self.db).listar_usuario_sucursal(data['sucursal_id'])
+        else:
+            lista = UsuarioManager(self.db).list_all(usuario)
+            lista = lista['objects']
+        lista = UsuarioManager(self.db).ordenar_usuario(lista)
+        self.respond(response= lista, success=True, message='Insertado correctamente.')
 
     @try_except
     def insert(self):
@@ -58,7 +71,7 @@ class UsuarioController(CrudController):
         ins_manager = self.manager(self.db)
         diccionary = json.loads(self.get_argument("object"))
         id = diccionary['id']
-        usuario = UsuarioManager(self.db).sacar_estado(id)
+        usuario = UsuarioManager(self.db).usuario_id(id)
         resp = UsuarioManager(self.db).delete_user(usuario, self.get_user_id())
         if resp:
             if usuario.enabled == True:

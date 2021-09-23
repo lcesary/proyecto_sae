@@ -36,14 +36,6 @@
 <script src="resources/js/functions.js"></script>
 <script>
     main_route = '/usuario'
-    function default_values() {
-        page_nr = 1
-        max_entries = 10
-        like_search = ""
-        order_by = ""
-        ascendant = true
-    }
-    default_values()
 </script>
 
 {%end%}
@@ -57,15 +49,18 @@
 <div class="header"><h2 class="title-rg-own">USUARIOS</h2></div>
 <div class="body">
     <div class="row clearfix">
-        <div class="col-xs-3 col-sm-2 col-md-2 col-lg-2">
+        <div class="">
         {% if 'usuario_insert' in privileges %}
-           <button id="new" type="button" class="btn bg-indigo waves-effect" title="Nuevo">
+           <button id="new" type="button" class="btn bg-indigo waves-effect" title="Nuevo" style="margin: 30px;">
                 <i class="material-icons blanco">add</i>
            </button>
+            <select id="sucursal_select" name="sucursal_select" >
+                 {% for sucursal in sucursales %}
+                      <option value="{{sucursal.id}}">{{sucursal.nombre}}</option>
+                  {% end %}
+            </select>
         {% end %}
         </div>
-
-
       <div id="rproc-loader" class="loader-wrapper" style="display: none">
             <div class="loader loader-own">
                 <div class="preloader preloader-own">
@@ -81,24 +76,44 @@
         {% if 'usuario_query' in privileges %}
     </div>
     <div class="row">
-        <div class="body table-responsive">
-            <table id="data_table" class="table table-bordered table-striped table-hover">
+
+    <table id="data_table" class="table table-bordered table-striped table-hover dataTable" style="margin-bottom: 0px!important">
                 <thead>
                     <tr>
-                        <th class="order_by_th" data-name="name">Nombre </th>
-                        <th class="order_by_th" data-name="last_name">Apellidos </th>
-                        <th class="order_by_th" data-name="mail">Correo </th>
-                        <th class="order_by_th" data-name="usuarioname">Nombre de usuario </th>
-                        <th class="order_by_th" data-name="condominio">Rol </th>
-                        <th class="order_by_th" data-name="enabled">Estado </th>
-                        <th class="actions_header">Acciones </th>
+                        <th class="order_by_th" data-name="name" style="background-color: #F7AD0C">Id </th>
+                        <th class="order_by_th" data-name="name" style="background-color: #F7AD0C">Nombre </th>
+                        <th class="order_by_th" data-name="condominio" style="background-color: #F7AD0C">Rol </th>
+                        <th class="order_by_th" data-name="condominio" style="background-color: #F7AD0C">Sucursal </th>
+                        <th class="order_by_th" data-name="condominio" style="background-color: #F7AD0C">Cargo </th>
+                        <th class="order_by_th" data-name="usuarioname" style="background-color: #F7AD0C">Nombre de usuario </th>
+                        <th class="order_by_th" data-name="enabled" style="background-color: #F7AD0C">Estado </th>
+                        <th class="actions_header" style="background-color: #F7AD0C">Acciones </th>
                     </tr>
                 </thead>
-                <tbody id="table_content">
-                <!--------{% include 'table.html' %}------------>
+                <tbody id="tbody-mes">
+                {% for usuarios in objects %}
+                <tr>
+                    <td>{{ usuarios.id }}</td>
+                    <td>{{ usuarios.nombre }}</td>
+                    <td>{{ usuarios.rol.nombre }}</td>
+                    <td>{{ usuarios.sucursal.nombre }}</td>
+                    <td>{{ usuarios.descripcion  }}</td>
+                    <td>{{ usuarios.usuario }}</td>
+                    <td align="center">
+                {% if 'usuario_delete' in privileges %}
+                        <input id="{{usuarios.id}}"  onClick="delet(this)" data-id="{{  usuarios.id }}" type="checkbox" class="module chk-col-deep-purple"  {%if usuarios.enabled%} {{"checked"}} {% end %}/> <label for="{{usuarios.id}}"></label>
+                         <label for="{{usuarios.id}}"></label>
+                {% end %}
+                    </td>
+                    <td align="center">
+                    {% if 'usuario_update' in privileges %}
+                        <button id="edit" onClick="edit(this)" data-json="{{usuarios.id }}" type="button" class="btn bg-indigo waves-effect waves-light" title="Editar"><i class="material-icons blanco">create</i></button>
+                    {% end %}
+                    </td>
+                </tr>
+                {% end %}
                 </tbody>
             </table>
-        </div>
     </div>
     {% else %}
     <div class="col-xs-9 col-sm-10 col-md-10 col-lg-10"></div>
@@ -109,8 +124,11 @@
 <script src="resources/js/jquery.toast.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+<script src="resources/plugins/jquery-validation/jquery.validate.js"></script>
+<script src="resources/plugins/jquery-validation/localization/messages_es.js"></script>
+<script src="resources/js/validations.js"></script>
     <script>
-     $('#role_id').selectpicker({
+        $('#role_id').selectpicker({
            size: 10,
            liveSearch: true,
            liveSearchPlaceholder: 'Buscar rol.',
@@ -124,62 +142,12 @@
            title: 'Seleccione una sucursal.'
     })
 
-    $(document).ready(function () {
-      var data = [];
-        {% set cont = 0 %}
-        {% for usuarios in objects %}
-            var estado = ""
-            {% if usuarios.enabled %}
-                estado = "checked"
-            {% end %}
-            var check  =  '<input id="{{usuarios.id}}"  onClick="delet(this)" data-id="{{  usuarios.id }}" type="checkbox" class="module chk-col-deep-purple"  {%if usuarios.enabled%} {{"checked"}} {% end %}/> <label for="{{usuarios.id}}"></label>';
-            var botones = '<button id="edit" onClick="edit(this)" data-json="{{usuarios.id }}" type="button" class="btn bg-indigo waves-effect waves-light" title="Editar"><i class="material-icons blanco">create</i></button>'
-            data.push( [
-                '{{  usuarios.nombre }}',
-                '{{ usuarios.apellidos }}',
-                '{{ usuarios.correo}}',
-                '{{ usuarios.usuario }}',
-                '{{ usuarios.rol.nombre }}',
-                check,
-                 botones
-            ]);
-        {% set cont = cont + 1 %}
-        {% end %}
-        cargar_tabla(data)
-        });
+        $(document).ready( function () {
 
-     function cargar_tabla(data){
-        if ( $.fn.DataTable.isDataTable( '#data_table' ) ) {
-            var table = $('#data_table').DataTable();
-            table.destroy();
-        }
-        $('#data_table').DataTable({
-            data:           data,
-            deferRender:    true,
-            scrollCollapse: true,
-            scroller:       true,
-
-            dom: "Bfrtip" ,
-            buttons: [
-            ],
-            initComplete: function () {
-                $("#rgm-loader").fadeOut('800');
-
-            },
-            "order": [[ 1, "desc" ]],
-            language : {
-                'url': '/resources/js/spanish.json',
-            },
-            "pageLength": 50
-        });
-     }
-
-        validationKeyup("form")
-        validationSelectChange("form")
+    });
 
 
-        attach_validators()
-        {% if 'usuario_insert' in privileges %}
+          {% if 'usuario_insert' in privileges %}
         $('#new').click(function () {
             $('#id').val('')
             $('#nombre').val('')
@@ -226,10 +194,8 @@
                     if (response.success) {
                         showMessage(response.message, "success", "ok")
                         $('#form').modal('hide')
-                        setTimeout(function () {
-                                window.location = main_route
-                            }, 2000);
                          $.Toast.hideToast();
+                        window.location = main_route
                     } else {
                         showMessage(response.message, "danger", "remove")
                          $.Toast.hideToast();
@@ -238,7 +204,6 @@
             })
 
          }else {
-             $.Toast.hideToast();
             swal(
                     'Error de datos.',
                     'Hay campos vacios por favor verifique sus datos.',
@@ -282,56 +247,59 @@
 
     $('#update').on('click', function (e) {
         debugger
-        $.Toast.showToast({title: 'Cargando...',duration: null, icon:'', image: ''});
-         if(!validationInputSelects("form")) {
-                objeto = JSON.stringify({
-                    'id': parseInt($('#id').val()),
-                    'nombre': $('#nombre').val(),
-                    'apellidos': $('#apellidos').val(),
-                    'correo': $('#correo').val(),
-                    'usuario': $('#usuario').val(),
-                    'descripcion': $('#descripcion').val(),
-                    'fkrol': parseInt($('#role_id').val()),
-                    'fksucursal': parseInt($('#sucursal_id').val()),
-                });
-                ruta = "{{privileges['usuario_update'].ruta}}";
-                $.ajax({
-                    url: ruta,
-                    type: "post",
-                    data: {_xsrf: getCookie("_xsrf"), object: objeto},
-                    async: false
-                }).done(function (response) {
-                    response=JSON.parse(response);
-                    if ("message" in response && response.message != '') {
-                        if (response.success) {
-                            showMessage(response.message, "success", "ok")
-                            $.Toast.hideToast();
-                            setTimeout
-                                (function () {
-                                    window.location = main_route
-                                }, 2000);
-                        } else {
-                            showMessage(response.message, "danger", "remove")
-                            $.Toast.hideToast();
-                        }
+            objeto = JSON.stringify({
+                'id': parseInt($('#id').val()),
+                'nombre': $('#nombre').val(),
+                'apellidos': $('#apellidos').val(),
+                'correo': $('#correo').val(),
+                'usuario': $('#usuario').val(),
+                'descripcion': $('#descripcion').val(),
+                'fkrol': parseInt($('#role_id').val()),
+                'fksucursal': parseInt($('#sucursal_id').val()),
+            });
+            ruta = "{{privileges['usuario_update'].ruta}}";
+            $.ajax({
+                url: ruta,
+                type: "post",
+                data: {_xsrf: getCookie("_xsrf"), object: objeto},
+                async: true,
+            }).done(function (response) {
+                debugger
+                response=JSON.parse(response);
+                if ("message" in response && response.message != '') {
+                    if (response.success) {
+                        showMessage(response.message, "success", "ok")
+                        $('#form').modal('hide')
+                        window.location = main_route
+                    } else {
+                        showMessage(response.message, "danger", "remove")
                     }
-                })
-          }else {
-             $.Toast.hideToast();
-            swal(
-                    'Error de datos.',
-                    'Hay campos vacios por favor verifique sus datos.',
-                    'error'
-            )
-        }
+                }
+                if (callback != null) {
+                    callback(response)
+                }
+            })
+
         });
 
         {% end %}
-        reload_form()
-        $('#role_id').selectpicker()
-    </script>
-    <script>
-    {% if 'usuario_delete' in privileges %}
+
+         data_tables()
+     function data_tables(){
+    $("#data_table").DataTable({
+            language : {"url": "/resources/js/spanish.json"},
+                "pageLength": 100,
+            "order": [[ 0, "desc" ]],
+            "columnDefs": [
+                {
+                    "targets": [ 0 ],
+                    "visible": false,
+                    "searchable": false
+                }]
+        });
+    }
+
+     {% if 'usuario_delete' in privileges %}
     function delet(e){
 
         var verificar = false
@@ -479,6 +447,63 @@
                 ajax_call("/usuario_codigo_reset", { id,_xsrf: getCookie("_xsrf")}, null, function () {setTimeout(function(){window.location=main_route}, 2000);})
             })
         })
-</script>
 
-{% end %}
+
+    $('#sucursal_select').on('change', function() {
+        debugger
+        let sucursal = $('#sucursal_select').val();
+        let body = JSON.stringify({
+            "sucursal_id": sucursal
+        });
+        dag = new FormData();
+        dag.append('object', body);
+        dag.append('_xsrf', getCookie("_xsrf"))
+          $.ajax({
+            url: "/usuario_listar_sucursal",
+            type: "post",
+            data: dag,
+            contentType: false,
+            processData: false,
+        }).done((response) => {
+             try {
+
+              $('#data_table').DataTable().destroy()
+                table.destroy()
+                 $('#data_table').empty();
+            }catch{
+                console.log("error")
+            }
+
+            //$('#tbody-mes').DataTable().destroy();
+            $('#tbody-mes').empty();
+            res = JSON.parse(response);
+
+            res.response.forEach(op => {
+                    $('#tbody-mes').append(`
+                        <tr>
+                            <th>`+op.id+`</th>
+                            <td >`+op.nombre+`</td>
+                            <td>`+op.rol+`</td>
+                            <td >`+op.sucursal+`</td>
+                            <td>`+op.descripcion+`</td>
+                            <td>`+op.usuario+`</td>
+                            <td align="center">
+                            {% if 'usuario_delete' in privileges %}
+                                    <input id=`+op.id+`  onClick="delet(this)" data-id=`+op.id+` type="checkbox" class="module chk-col-deep-purple"  {%if usuarios.enabled %} {{"checked"}} {% end %}/> <label for=`+op.id+`></label>
+                                     <label for="`+op.id+`"></label>
+                            {% end %}
+                                </td>
+                            <td>
+                            <button id="edit" onClick="edit(this)" data-json=`+op.id+` type="button" class="btn bg-indigo waves-effect waves-light" title="Editar"><i class="material-icons blanco">create</i></button>
+                            </td>
+                       </tr>
+                    `)
+                })
+
+            data_tables()
+          })
+    })
+
+    </script>
+
+{%end%}
