@@ -19,9 +19,13 @@ class UsuarioManager(SuperManager):
     def __init__(self, db):
         super().__init__(Usuario, db)
 
-    def sacar_estado(self,id):
+    def usuario_id(self,id):
         usuario= self.db.query(Usuario).filter(Usuario.id == id ).first()
         return usuario
+
+    def listar_usuario_sucursal(self,sucursal_id):
+        return self.db.query(Usuario).filter(Usuario.fksucursal == sucursal_id).filter(Rol.id != 1).all()
+
 
     def listar_usuario(self,usuario):
         usuario=self.db.query(Usuario).filter(Usuario.usuario==usuario).first()
@@ -52,18 +56,13 @@ class UsuarioManager(SuperManager):
             return u
         return Error('unknown')
 
-    def insertar(self, Usuario):
-        if Usuario.fkrol > 0:
-            Usuario.password = hashlib.sha512(Usuario.password.encode()).hexdigest()
-            codigo = self.get_random_string()
-            Usuario.codigo = codigo
-            u = super().insert(Usuario)
-            return u
-        return Error('unknown')
-
     def update(self, Usuarioupd):
         if Usuarioupd.password != None:
             Usuarioupd.password = hashlib.sha512(Usuarioupd.password.encode()).hexdigest()
+        if Usuarioupd.nombre is not None:
+            Usuarioupd.nombre = Usuarioupd.nombre.upper()
+        if Usuarioupd.apellidos is not None:
+            Usuarioupd.apellidos = Usuarioupd.apellidos.upper()
         fecha = BitacoraManager(self.db).fecha_actual()
         b = Bitacora(fkusuario=Usuarioupd.id, accion="Se modificó un usuario.", fecha=fecha)
         super().insert(b)
@@ -126,6 +125,16 @@ class UsuarioManager(SuperManager):
             return dict(objects=self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Rol.id != 1).distinct().all())
         else:
             return dict(objects=self.db.query(Usuario).filter(Usuario.fkrol == Rol.id).filter(Usuario.fksucursal == usuario.fksucursal).filter(Rol.id != 1).distinct().all())
+    def ordenar_usuario(self,usuarios):
+        lista = list()
+        for usuario in usuarios:
+            rol= usuario.rol.nombre
+            sucursal= usuario.sucursal.nombre
+            usuario= usuario.get_dict()
+            usuario['sucursal']= sucursal
+            usuario['rol']= rol
+            lista.append(usuario)
+        return lista
 
     def listar(self):
         return self.db.query(Usuario).filter(Usuario.enabled == True).filter(Rol.nombre != "ADMINISTRADOR").distinct()
@@ -209,6 +218,7 @@ class UsuarioManager(SuperManager):
             o['rol']=rol
             lista.append(o)
         return lista
+
 class SucursalManager(SuperManager):
     def __init__(self, db):
         super().__init__(Sucursal, db)

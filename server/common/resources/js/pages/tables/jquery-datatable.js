@@ -1,4 +1,23 @@
 $(function () {
+
+      $('.js-expor').DataTable({
+        pageLength: 100,
+        dom: 'Bfrtip',
+        buttons: [
+                {
+                extend: 'pdfHtml5',
+                exportOptions: {
+                    columns: [ 0, 1, 2,3,4]
+                }},
+                {
+                extend: 'excel',
+                exportOptions: {
+                    columns: [ 0, 1, 2,3,4]
+                }
+            }
+        ]
+    });
+
     $('.js-basic-example').DataTable({
         language:{
             "sProcessing":     "Procesando...",
@@ -27,10 +46,21 @@ $(function () {
     });
 
     //Exportable table
-    $('.js-exportable').DataTable({
+     $('.js-exportable').DataTable({
         dom: 'Bfrtip',
+        pageLength: 100,
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
+                {
+                extend: 'pdfHtml5',
+                exportOptions: {
+                    columns: [ 0, 1, 2,3,4]
+                }},
+                {
+                extend: 'excel',
+                exportOptions: {
+                    columns: [ 0, 1, 2,3,4]
+                }
+            }
         ]
     });
 });

@@ -2,10 +2,9 @@
 {% for usuarios in objects %}
 <tr>
     <td>{{ usuarios.nombre }}</td>
-    <td>{{ usuarios.apellidos }}</td>
-    <td>{{ usuarios.correo }}</td>
-    <td>{{ usuarios.usuario }}</td>
     <td>{{ usuarios.rol.nombre }}</td>
+    <td>{{ usuarios.sucursal.nombre }}</td>
+    <td>{{ usuarios.descripcion }}</td>
     <td align="center">
          {% if 'usuario_delete' in privileges %}
             <div {%if usuarios.enabled%} title="Activo" {% else %} title="Inhabilitado" {% end %}>
