@@ -42,3 +42,7 @@ class BitacoraManager(SuperManager):
 
     def obtenerUbicaciones(self):
         return self.db.query(Tracking).all()
+    def guardarUbicacion(self,DatosTrack):
+            #super().insert(b)
+            u = super().insert(DatosTrack)
+            return u
