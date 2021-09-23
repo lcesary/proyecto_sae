@@ -39,3 +39,6 @@ class BitacoraManager(SuperManager):
 
     def fecha(self):
         return fecha_zona.strftime('%Y/%d/%m')
+
+    def obtenerUbicaciones(self):
+        return self.db.query(Tracking).all()

@@ -19,6 +19,8 @@ def get_handlers():
     handlers.extend(get_routes(UsuarioController))
     handlers.extend(get_routes(RolController))
     handlers.extend(get_routes(BitacoraController))
+    handlers.extend(get_routes(ApiAppController))
+
 
     #servicio
     #handlers.extend(get_routes(ApiUsuarioController))
