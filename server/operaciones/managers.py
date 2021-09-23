@@ -57,7 +57,7 @@ class TrackingManager(SuperManager):
 
     def guardarUbicacion(self,DatosTrack):
             DatosTrack.fkusuario = 1
-            DatosTrack.nombreUsuario = "LUIS ENRIQUE"
+            DatosTrack.nombre_usuario = "LUIS ENRIQUE"
            
             #super().insert(b)
             u = super().insert(DatosTrack)
