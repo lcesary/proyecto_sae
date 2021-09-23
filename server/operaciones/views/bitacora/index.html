@@ -75,7 +75,41 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="body table-responsive">
+                            <table style="text-align: center;" id="data_table" class="table table-bordered table-striped table-hover">
+                                <thead>
+                                    <tr style="background: rgba(247, 173, 12, 1);">
+                                        <th style="text-align: center;" class="order_by_th" data-name="name">Usuario </th>
+                                        <th style="text-align: center;" class="order_by_th" data-name="last_name">Rol </th>
+                                        <th style="text-align: center;" class="order_by_th" data-name="mail">Sucursal </th>
+                                        <th style="text-align: center;" class="order_by_th" data-name="usuarioname">Grupo </th>
+                                        <th style="text-align: center;" class="order_by_th" data-name="condominio">Monitoreo </th>
+                                        <th style="text-align: center;" class="order_by_th" data-name="enabled">Acciones </th>
+                                        <th style="text-align: center;" class="actions_header">Bateria </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table_content">
+                                {% for ubicacionL in ubicaciones %}
+                                <tr>
+                                <td>{{ubicacionL.nombre_usuario}}</td>
+                                <td>Gerente Regional</td>
+                                <td>Todo</td>
+                                <td>TRADE MARKETING SC</td>
+                                <td style="width: 10%;"><input style="width: 35%;" type="text" value="5"></td>
+                                <td><button onclick='window.location.href="https://saetra.saebolivia.com/historial?id={{ubicacionL.fkusuario}}"' id="ver-usuario" type="button" class="btn bg-indigo waves-effect waves-light" title="Editar"><i class="material-icons blanco">search</i></button></td>
+                                <td>{{ubicacionL.bateria}}</td>
+                            </tr>
+                                {%end %}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
                 </div>
+                
         </div>
     </div>
     <div class="col-xs-9 col-sm-10 col-md-10 col-lg-10"></div>
@@ -208,6 +242,26 @@
             })
         });
     
+    </script>
+    <script>
+            $('#data_table').DataTable({
+            deferRender:    true,
+            scrollCollapse: true,
+            scroller:       true,
+
+            dom: "Bfrtip" ,
+            buttons: [
+            ],
+            initComplete: function () {
+                $("#rgm-loader").fadeOut('800');
+
+            },
+            "order": [[ 1, "desc" ]],
+            language : {
+                'url': '/resources/js/spanish.json',
+            },
+            "pageLength": 50
+        });
     </script>
 
 {% end %}

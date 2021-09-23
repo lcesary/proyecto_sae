@@ -68,18 +68,38 @@
 
                             <div id="googleMap" style="width:100%;height:900px;"></div>
                             <div class="vista-rapida">
-                                <h4>{{usuario.nombre}} {{usuario.apellidos}}</h4>
-                                <p>Cargo: {{usuario.fkrol}}</p>
-                                <p>Correo: {{usuario.correo}}</p>
-                                <p>Sucursal: {{usuario.fksucursal}}</p>
+                                <h4>{{usuario_perfil.nombre}} {{usuario_perfil.apellidos}}</h4>
+                                <p>Cargo: {{usuario_perfil.fkrol}}</p>
+                                <p>Correo: {{usuario_perfil.correo}}</p>
+                                <p>Sucursal: {{usuario_perfil.fksucursal}}</p>
 
 
                             </div>
                         </div>
                         <div>
-                            {% for ubicacionL in ubicaciones %}
-                               <p>{{ubicacionL.nombre_usuario}} {{ubicacionL.bateria}}%  Cordeenadas: {{ubicacionL.longitud}} , {{ubicacionL.latitud}} </p>
-                                {%end %}
+                            <div class="body table-responsive">
+                                <table style="text-align: center;" id="data_table" class="table table-bordered table-striped table-hover">
+                                    <thead>
+                                        <tr style="background: rgba(247, 173, 12, 1);">
+                                            <th style="text-align: center;" class="order_by_th" data-name="name">Usuario </th>
+                                            <th style="text-align: center;" class="order_by_th" data-name="last_name">Bateria </th>
+                                            <th style="text-align: center;" class="order_by_th" data-name="mail">Latitud </th>
+                                            <th style="text-align: center;" class="order_by_th" data-name="usuarioname">Longitud </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table_content">
+                                    {% for ubicacionL in ubicaciones %}
+                                    <tr>
+                                        <td>{{ubicacionL.nombre_usuario}}</td>
+                                        <td>{{ubicacionL.bateria}}</td>
+                                        <td>{{ubicacionL.latitud}}</td>
+                                        <td>{{ubicacionL.longitud}}</td>
+                                    </tr>
+                                    {%end %}
+    
+                                    </tbody>
+                                </table>
+                            </div>                               
                         </div>
                     </div>
                 </div>
@@ -216,5 +236,24 @@
         });
     
     </script>
+<script>
+    $('#data_table').DataTable({
+    deferRender:    true,
+    scrollCollapse: true,
+    scroller:       true,
 
+    dom: "Bfrtip" ,
+    buttons: [
+    ],
+    initComplete: function () {
+        $("#rgm-loader").fadeOut('800');
+
+    },
+    "order": [[ 1, "desc" ]],
+    language : {
+        'url': '/resources/js/spanish.json',
+    },
+    "pageLength": 50
+});
+</script>
 {% end %}
